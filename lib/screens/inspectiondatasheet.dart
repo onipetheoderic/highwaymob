@@ -64,17 +64,26 @@ class _DatasheetState extends State<Datasheet> {
         child: FutureBuilder(
           future: _getContracts(),
           builder: (BuildContext context, AsyncSnapshot snapshot){
-            return ListView.builder(
+            if(snapshot.data==null){
+              return Container(
+                child: Center(
+                  child: Text("Loading....", style:TextStyle(fontFamily: 'Candara')),)
+              );
+            }
+            else {
+              return ListView.builder(
               itemCount: snapshot.data.length,
               itemBuilder: (BuildContext context, int Index){
                 var snapshotIndexed = snapshot.data[Index];
                 String state = snapshotIndexed.state;
                 String lga = snapshotIndexed.lga;
                 String contractType = snapshotIndexed.contractType;
-                String description = "State: $state, L.G.A: $lga";
-                
+                String description = "State: $state, L.G.A: $lga";                
                 return sexyCard(snapshot.data[Index].projectTitle, description);
-              });
+              }
+            );
+            }
+            
           }
         )
       )
