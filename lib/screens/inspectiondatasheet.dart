@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'forgotscreen.dart';
+import 'dashboardscreen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:io';
+import 'dart:async';
 
 
 class Datasheet extends StatefulWidget {
@@ -10,7 +14,44 @@ class Datasheet extends StatefulWidget {
 }
 
 class _DatasheetState extends State<Datasheet> {
- 
+//   void initState() {
+//   super.initState();
+//   _getContracts();
+// }
+
+ Future<List<Contract>> _getContracts() async{
+    final storage = new FlutterSecureStorage();
+    final value = await storage.read(key: 'token');
+    print("XXXXXXXXXXX$value");
+    final bearer = "Bearer "+value;
+    var data = await http.get("http://localhost:5000/api/datasheet_select", headers: {"Accept": "application/json", "authorization":bearer});
+    var jsonData = json.decode(data.body);
+    List<Contract> contracts = [];
+    for(var u in jsonData){
+      Contract contract = Contract(u["prioritize"], u["id"], u["projectTitle"], u["state"], u["lga"], u["contractType"]); 
+      contracts.add(contract);
+    }
+    print(contracts.length);
+    return contracts;
+
+ }
+//  void initState() {
+//   super.initState();
+//   _initResponse();
+// }
+
+
+//  void _initResponse() async {
+//    final storage = new FlutterSecureStorage();
+//    final value = await storage.read(key: 'token');
+//    print("UUUUUUUUUUUUUUUUUU$value");
+//    final bearer = "Bearer "+value;
+//     var response = await http.get("http://localhost:5000/api/datasheet_select", headers: {"Accept": "application/json", "authorization":bearer});
+//   var list =json.decode(response.body) as List;
+//   print(list);
+
+// }
+  
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -18,20 +59,24 @@ class _DatasheetState extends State<Datasheet> {
         title: Text("Projects You are Assigned To"),
         backgroundColor: Colors.greenAccent[700],
       ),
-      body: ListView(
-        scrollDirection: Axis.vertical,
-        children: <Widget> [
-          Padding(padding: EdgeInsets.only(top:20, bottom:20),
-          child:Center(
-            child:Text(
-              "Select the Project You want", style: TextStyle(fontSize:20, fontFamily:'Audiowide')
-            ),
-          ),),
-          sexyCard("theoderic", "is the don in the Hood"),
-         
-          
-         
-        ]
+      // sexyCard("theoderic", "is the don in the Hood"),
+      body: Container(
+        child: FutureBuilder(
+          future: _getContracts(),
+          builder: (BuildContext context, AsyncSnapshot snapshot){
+            return ListView.builder(
+              itemCount: snapshot.data.length,
+              itemBuilder: (BuildContext context, int Index){
+                var snapshotIndexed = snapshot.data[Index];
+                String state = snapshotIndexed.state;
+                String lga = snapshotIndexed.lga;
+                String contractType = snapshotIndexed.contractType;
+                String description = "State: $state, L.G.A: $lga";
+                
+                return sexyCard(snapshot.data[Index].projectTitle, description);
+              });
+          }
+        )
       )
     );
   }
@@ -91,4 +136,23 @@ Widget sexyCard(String title, String description){
         )
     );
   }
+}
+
+class Contract {
+    bool prioritize;
+    String id;
+    String projectTitle;
+    String state;
+    String lga;
+    String contractType;
+
+    Contract(
+        this.prioritize,
+        this.id,
+        this.projectTitle,
+        this.state,
+        this.lga,
+        this.contractType,
+    );
+
 }
