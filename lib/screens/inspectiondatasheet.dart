@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:io';
 import 'dart:async';
+import 'components/screenArguments.dart';
+import 'datasheetcomponent.dart';
 
 
 class Datasheet extends StatefulWidget {
@@ -26,9 +28,10 @@ class _DatasheetState extends State<Datasheet> {
     final bearer = "Bearer "+value;
     var data = await http.get("http://localhost:5000/api/datasheet_select", headers: {"Accept": "application/json", "authorization":bearer});
     var jsonData = json.decode(data.body);
+    
     List<Contract> contracts = [];
     for(var u in jsonData){
-      Contract contract = Contract(u["prioritize"], u["id"], u["projectTitle"], u["state"], u["lga"], u["contractType"]); 
+      Contract contract = Contract(u["prioritize"], u["_id"], u["projectTitle"], u["state"], u["lga"], u["contractType"]); 
       contracts.add(contract);
     }
     print(contracts.length);
@@ -77,9 +80,11 @@ class _DatasheetState extends State<Datasheet> {
                 var snapshotIndexed = snapshot.data[Index];
                 String state = snapshotIndexed.state;
                 String lga = snapshotIndexed.lga;
+                String id = snapshotIndexed.id;
+                print("$lga $id");
                 String contractType = snapshotIndexed.contractType;
                 String description = "State: $state, L.G.A: $lga";                
-                return sexyCard(snapshot.data[Index].projectTitle, description);
+                return sexyCard(snapshot.data[Index].projectTitle, description, snapshot.data[Index].id);
               }
             );
             }
@@ -90,9 +95,21 @@ class _DatasheetState extends State<Datasheet> {
     );
   }
 
-Widget sexyCard(String title, String description){
+Widget sexyCard(String title, String description, String id){
   return(
-     Padding(padding: const EdgeInsets.all(16.0),
+      new GestureDetector(
+        onTap: () {
+          Navigator.pushNamed(                                        
+      context,                                                  
+      DatasheetComponent.routeName,                         
+      arguments: ScreenArguments(                               
+        title,                              
+        description, 
+         id,       
+      ),                                                                                                                 
+    );  
+        },
+      child: Padding(padding: const EdgeInsets.all(16.0),
           child: Container(
             child: FittedBox(
             child: Material(
@@ -103,7 +120,7 @@ Widget sexyCard(String title, String description){
                 child: Row(
                   children: <Widget>[
                     Container(
-                      child: myDetailContainer(title, description),
+                      child: myDetailContainer(title, description, id),
                     ),
                     Container(
                       width:250,
@@ -121,12 +138,14 @@ Widget sexyCard(String title, String description){
               )
             )
           )
-        )
+        ),
+      )
+   
   );
 }
 
 
-  Widget myDetailContainer(String title, String description){
+  Widget myDetailContainer(String title, String description, String id){
     return(
       Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -137,6 +156,7 @@ Widget sexyCard(String title, String description){
           ),
            Padding(
             padding: EdgeInsets.only(right:10, left:20),
+            
             child: Center(child: Text(description, style:TextStyle(fontSize:16, fontFamily:'Candara')))
           ),
           

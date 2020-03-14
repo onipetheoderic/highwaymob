@@ -6,6 +6,9 @@ import 'screens/forgotscreen.dart';
 import 'screens/dashboardscreen.dart';
 import 'screens/camera.dart';
 import 'screens/inspectiondatasheet.dart';
+import 'screens/datasheetcomponent.dart';
+import 'screens/components/screenArguments.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -19,12 +22,13 @@ class MyApp extends StatelessWidget {
      title: "HighwayMgt",
     initialRoute: '/',
     routes: {
+       DatasheetComponent.routeName: (context) => DatasheetComponent(),
       '/': (context) =>LoginScreen(),
       '/forgot_your_password': (context) => ForgotPasswordScreen(),
       '/dashboard': (context) => DashboardScreen(),
       '/camera': (context) => CameraApp(),
       '/datasheet': (context) => Datasheet(),
-      
+     
     }
     //  home: LoginScreen(),
     );
