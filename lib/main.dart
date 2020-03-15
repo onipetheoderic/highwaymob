@@ -7,6 +7,8 @@ import 'screens/dashboardscreen.dart';
 import 'screens/camera.dart';
 import 'screens/inspectiondatasheet.dart';
 import 'screens/datasheetcomponent.dart';
+import 'screens/completeddatasheet.dart';
+import 'screens/completedroad.dart';
 import 'screens/components/screenArguments.dart';
 
 void main() => runApp(MyApp());
@@ -24,10 +26,12 @@ class MyApp extends StatelessWidget {
     routes: {
        DatasheetComponent.routeName: (context) => DatasheetComponent(),
       '/': (context) =>LoginScreen(),
+      '/completed_datasheet': (context)=>CompletedDatasheet(),
       '/forgot_your_password': (context) => ForgotPasswordScreen(),
       '/dashboard': (context) => DashboardScreen(),
       '/camera': (context) => CameraApp(),
       '/datasheet': (context) => Datasheet(),
+      '/completed_road': (context) => CompletedRoad(),
      
     }
     //  home: LoginScreen(),

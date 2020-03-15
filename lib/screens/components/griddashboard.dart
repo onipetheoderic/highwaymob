@@ -28,15 +28,15 @@ class GridDashboard extends StatelessWidget {
     img: "assets/images/icon4.png"
   );
   Items item5 = new Items(
-    title: "Upload Datasheet",
+    title: "Ongoing Inspection",
     subtitle: "March, Wednesday",
     link: "/datasheet",
     img: "assets/images/icon5.png"
   );
   Items item6 = new Items(
-    title: "All Inspectors",
+    title: "Completed Projects",
     subtitle: "March, Wednesday",
-    link: "3 links",
+    link: "/completed_datasheet",
     img: "assets/images/icon6.png"
   );
   @override
