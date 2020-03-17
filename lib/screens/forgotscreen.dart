@@ -119,7 +119,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     color: Color.fromRGBO(5, 77, 22, 1),
                   ),
                   child: Center(
-                    child: Text("Login", style: TextStyle(color: Colors.white, fontFamily: 'Audiowide'),),
+                    child: Text("Submit", style: TextStyle(color: Colors.white, fontFamily: 'Audiowide'),),
                   )
                 ),
             ),

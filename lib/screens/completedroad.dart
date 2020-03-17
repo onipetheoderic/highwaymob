@@ -12,28 +12,102 @@ import 'package:flutter/services.dart';
 
 class CompletedRoad extends StatefulWidget {
   static const routeName = '/datasheet_component';
- 
+
   @override
   _DatasheetComponentState createState() => _DatasheetComponentState();
 }
 
 class _DatasheetComponentState extends State<CompletedRoad> {
-  
+  final checkedByController = TextEditingController();
+   bool data_sent=false;
+   bool show_second=false;
+   String datasheet_id="";
+  final gpsLatitudeController = TextEditingController();  
+  final gpsLongitudeController = TextEditingController();
   var id;
+  final ramsStructureController = TextEditingController();
+  final recordedByController = TextEditingController();  
+  final roadNameController = TextEditingController();
+  final roadNumberController = TextEditingController();
+  final stateController = TextEditingController();
+  final structureNameController = TextEditingController();
+  final zoneController = TextEditingController();
 
-  _saveChanges(String val, String id) async{
-    print("from the function, $val, $id");
-    print(val.length);  
-    if(val.length>=2){
-      final storage = new FlutterSecureStorage();
+  @override
+  void dispose() {
+  ramsStructureController.dispose();
+  structureNameController.dispose();
+  zoneController.dispose();
+  stateController.dispose();
+  roadNumberController.dispose();
+  roadNameController.dispose();
+  gpsLatitudeController.dispose();  
+  gpsLongitudeController.dispose();
+  recordedByController.dispose();  
+  checkedByController.dispose();
+    super.dispose();
+  }
+
+  _saveChanges(String valz, String field_name, String id, String problem_name) async{
+    print("from the function, $valz, $field_name, $id $problem_name");
+    
+    print(valz.length);  
+      if(valz.length>=2){
+          final storage = new FlutterSecureStorage();
+          final value = await storage.read(key: 'token');
+          print("DDDDDDDDDD$value");
+          final bearer = "Bearer "+value;
+          var data = await http.post("http://localhost:5000/api/create_completed_component", 
+          body: {"problem_id":id, 
+          "problem_name":field_name, 
+          "completedDatasheet_id": datasheet_id,
+          "value":valz, 
+          "field_type":problem_name}, 
+          headers: {"Accept": "application/json", "authorization":bearer});
+          var jsonData = json.decode(data.body);
+          print("YYYYYYYYYYYY $jsonData");      
+      }
+      
+  }
+
+
+void _SubmitRecord(String ramsStructureController, String structureNameController,
+                  String zoneController, String stateController, String roadNumberController,
+                  String roadNameController, String gpsLatitudeController,
+                  String gpsLongitudeController, String recordedByController, 
+                  String checkedByController) async{
+
+final storage = new FlutterSecureStorage();
       final value = await storage.read(key: 'token');
       print("DDDDDDDDDD$value");
       final bearer = "Bearer "+value;
-      var data = await http.post("http://localhost:5000/api/edit_single_component", body: {'component_id': id, 'component_score': val}, headers: {"Accept": "application/json", "authorization":bearer});
-      var jsonData = json.decode(data.body);
-      print("YYYYYYYYYYYY $jsonData");
-    }
-  }
+      var data = await http.post(
+        
+        "http://localhost:5000/api/create_completed_inspection_datasheet_post", 
+      body: {'rams_structure_key': ramsStructureController, 
+            'structure_name': structureNameController,
+            'zone': zoneController,
+            'state': stateController, 
+            'road_number': roadNumberController,
+            'road_name': roadNameController,
+             'gps_latitude': gpsLatitudeController, 
+            'gps_longitude': gpsLongitudeController,
+            'recorded_by': recordedByController,
+            'checked_by': checkedByController           
+            },
+            headers: {"Accept": "application/json", "authorization":bearer});
+            var jsonData = json.decode(data.body);
+            CompleteDatasheet completed = CompleteDatasheet(jsonData);
+            print("YYYYYYYYYYYY $jsonData");
+            print(completed.id);
+      
+      setState(() {
+        datasheet_id = completed.id;
+        data_sent=true;
+        show_second=true;
+      });
+
+}
 
   Future<List<Component>> _getContracts() async{
     final storage = new FlutterSecureStorage();
@@ -46,14 +120,14 @@ class _DatasheetComponentState extends State<CompletedRoad> {
     print("XXXXXXXXXXXXXXXX$jsonData"); 
     List<Component> components = [];
     for(var u in jsonData){
-      Component component = Component(u["id"], u["name"], u["inspection_type_id"]); 
+      Component component = Component(u["_id"], u["name"], u["inspection_type_id"]); 
       components.add(component);
     }
     print(components.length);
     return components;
 
  }
-  @override
+
   Widget build(BuildContext context){
     
     final ScreenArguments args = ModalRoute.of(context).settings.arguments;
@@ -68,10 +142,21 @@ class _DatasheetComponentState extends State<CompletedRoad> {
       
       body: SingleChildScrollView(
         child: Column(children: <Widget>[
+
           Padding(padding:EdgeInsets.only(top:20, bottom:20), child:  Text("List of Completed Datasheet Components", style:TextStyle(fontSize:15))),
-          Padding(
+          (() {
+                  // your code here
+                  if(data_sent==false){
+                           return Container(
+            child: Column(
+              children: <Widget>[
+              
+
+ Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
+     
       child: TextField(
+        controller: ramsStructureController,
         decoration: InputDecoration(
           hintText: "RAMs Structure Key",
           isDense: true, 
@@ -90,10 +175,12 @@ class _DatasheetComponentState extends State<CompletedRoad> {
      
       ),
     ),
+      
           Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
-        decoration: InputDecoration(
+        controller: structureNameController,
+        decoration: InputDecoration(          
           hintText: "Structure Name",
           isDense: true, 
           contentPadding: EdgeInsets.all(10),
@@ -111,10 +198,11 @@ class _DatasheetComponentState extends State<CompletedRoad> {
      
       ),
     ),
-    
+   
      Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
+        controller: zoneController,
         decoration: InputDecoration(
           hintText: "Zone",
           isDense: true, 
@@ -133,9 +221,11 @@ class _DatasheetComponentState extends State<CompletedRoad> {
      
       ),
     ),
+       
     Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
+        controller: stateController,
         decoration: InputDecoration(
           hintText: "State",
           isDense: true, 
@@ -154,9 +244,10 @@ class _DatasheetComponentState extends State<CompletedRoad> {
      
       ),
     ),
-    Padding(
+        Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
+         controller: roadNumberController,
         decoration: InputDecoration(
           hintText: "Road Number",
           isDense: true, 
@@ -175,9 +266,12 @@ class _DatasheetComponentState extends State<CompletedRoad> {
      
       ),
     ),
+    
+
     Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
+        controller: roadNameController,
         decoration: InputDecoration(
           hintText: "Road Name",
           isDense: true, 
@@ -196,9 +290,11 @@ class _DatasheetComponentState extends State<CompletedRoad> {
      
       ),
     ),
+  
     Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
+        controller: gpsLatitudeController,
         decoration: InputDecoration(
           hintText: "GPS Latitude",
           isDense: true, 
@@ -220,6 +316,7 @@ class _DatasheetComponentState extends State<CompletedRoad> {
     Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
+        controller: gpsLongitudeController,
         decoration: InputDecoration(
           hintText: "GPS Longitude",
           isDense: true, 
@@ -238,9 +335,11 @@ class _DatasheetComponentState extends State<CompletedRoad> {
      
       ),
     ),
+      
     Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
+        controller: recordedByController,
         decoration: InputDecoration(
           hintText: "Recorded By",
           isDense: true, 
@@ -262,6 +361,7 @@ class _DatasheetComponentState extends State<CompletedRoad> {
     Padding(
         padding: EdgeInsets.only(right:30, left:30, top:20),
       child: TextField(
+        controller: checkedByController,
         decoration: InputDecoration(
           hintText: "Checked By",
           isDense: true, 
@@ -280,41 +380,96 @@ class _DatasheetComponentState extends State<CompletedRoad> {
      
       ),
     ),
-    /*
-      rams_structure_key: String,
-    structure_name: String,
-    zone: String,
-    state: String,
-    road_number: String,
-    road_name: String,
-    gps_latitude: String,
-    gps_longitude: String,
-    recorded_by: String,
-    checked_by: String,
-      */ 
-          Container(height:500,
+    
+             SizedBox(height:20.0),
+                 GestureDetector(
+            
+                  onTap: () =>_SubmitRecord(
+                  ramsStructureController.text, 
+                  structureNameController.text,
+                  zoneController.text,
+                  stateController.text,
+                  roadNumberController.text,
+                  roadNameController.text,
+                  gpsLatitudeController.text,
+                  gpsLongitudeController.text,
+                  recordedByController.text,
+                  checkedByController.text),
+
+                  child: new Container(                 
+                  height:50,
+                  margin: EdgeInsets.symmetric(horizontal:30),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    color: Color.fromRGBO(5, 77, 22, 1),
+                  ),
+                  child: Center(
+                    child: Text("Send Data", style: TextStyle(color: Colors.white, fontFamily: 'Audiowide'),),
+                  )
+                ),
+            ),
+              SizedBox(height:30.0),
+            //    GestureDetector(
+            //     onTap: (){
+            //       print("Container clicked");
+            //     },
+            //     child: new Container(                 
+            //       height:50,
+            //       margin: EdgeInsets.symmetric(horizontal:30),
+            //       decoration: BoxDecoration(
+            //         borderRadius: BorderRadius.circular(50),
+            //         color: Color.fromRGBO(5, 77, 22, 1),
+            //       ),
+            //       child: Center(
+            //         child: Text("Save Data", style: TextStyle(color: Colors.white, fontFamily: 'Audiowide'),),
+            //       )
+            //     ),
+            // ),
+              ],),
+          
+          );
+                  }
+                  else{
+
+                     return Container();
+
+                  };
+                }()),
+  
+         
+          
+   SizedBox(height:50.0),
+   
+  
+  //  Padding(padding: EdgeInsets.only(top:10, left:10, right:10, bottom:20),
+  //  child:Text("Fill In Component Information")),
+  
+  Container(height:500,
             child:FutureBuilder(
           future: _getContracts(),
           builder: (BuildContext context, AsyncSnapshot snapshot){
-            if(snapshot.data==null){
-              return Container(
-                child: Center(
-                  child: Text("Loading....", style:TextStyle(fontFamily: 'Candara')),)
-              );
+              if(data_sent==true){
+                if(snapshot.data==null){
+                  return Container(
+                    child: Center(
+                      child: Text("Loading....", style:TextStyle(fontFamily: 'Candara')),)
+                  );
+                }
+                else {                
+                  return ListView.builder(               
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (BuildContext context, int Index){
+                    var snapshotIndexed = snapshot.data[Index];               
+                    print(snapshot.data[Index].name);
+                    return sexyCard(snapshot.data[Index].name, snapshot.data[Index].inspection_type_id, snapshot.data[Index]._id);
+                  }
+                );
+                }
             }
             else {
-             
-              return ListView.builder(
-               
-              itemCount: snapshot.data.length,
-              itemBuilder: (BuildContext context, int Index){
-                var snapshotIndexed = snapshot.data[Index];               
-                print(snapshot.data[Index].name);
-                return sexyCard(snapshot.data[Index].name, snapshot.data[Index].inspection_type_id, snapshot.data[Index].id);
-              }
-            );
+              return Container();
             }
-            
+
           }
         )
           ),
@@ -365,7 +520,6 @@ Widget sexyCard(String title, String description, String id){
   );
 }
 
-
   Widget myDetailContainer(String title, String description, String id){
     if(title!=null && description!=null){
 return(
@@ -380,27 +534,75 @@ return(
             padding: EdgeInsets.only(right:10, left:20),
             child: Center(child: Text(description, style:TextStyle(fontSize:15, fontFamily:'Candara')),)
           ),
-          Padding(
+          Container(child: Row(
+            children:<Widget>[
+Padding(
             padding: EdgeInsets.only(right:10, left:60),
             child:SizedBox(
              height:100,
-             width:150,
+             width:80,
              
            child: TextFormField(
             
               onChanged: (val) {
-               _saveChanges(val, title);
+               _saveChanges(val, title, id, "severity");
               },
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
               border: InputBorder.none,                      
-              hintText: "score",
+              hintText: "Severity",
               
               hintStyle: TextStyle(color: Colors.grey, fontFamily: 'AudioWide',fontSize:14 )
             )
           )
           ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(right:10, left:60),
+            child:SizedBox(
+             height:100,
+             width:80,
+             
+           child: TextFormField(
+            
+              onChanged: (val) {
+               _saveChanges(val, title, id, "extent");
+              },
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+              border: InputBorder.none,                      
+              hintText: "Extent",
+              
+              hintStyle: TextStyle(color: Colors.grey, fontFamily: 'AudioWide',fontSize:14 )
+            )
           )
+          ),
+          ),
+            Padding(
+            padding: EdgeInsets.only(right:10, left:60),
+            child:SizedBox(
+             height:100,
+             width:80,
+             
+           child: TextFormField(
+            
+              onChanged: (val) {
+               _saveChanges(val, title, id, "urgent");
+              },
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+              border: InputBorder.none,                      
+              hintText: "Urgent",
+              
+              hintStyle: TextStyle(color: Colors.redAccent[600], fontFamily: 'AudioWide',fontSize:14 )
+            )
+          )
+          ),
+          )
+            ]
+
+          ),),
+          
            
         ],
         )
@@ -412,17 +614,26 @@ return(
 }
 
 class Component {
-    String id;
-    String name;
-    String inspection_type_id;
-
     Component(
-        this.id,
+        this._id,
         this.name,
         this.inspection_type_id,
 
     );
 
+    String _id;
+    String inspection_type_id;
+    String name;
+}
+
+class CompleteDatasheet {
+    CompleteDatasheet(
+        this.id,
+        
+
+    );
+
+    String id;
 }
 
 class CustomRangeTextInputFormatter extends TextInputFormatter {
